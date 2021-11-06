@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-File Description: 
-Author: nghuyong
-Mail: nghuyong@163.com
-Created Time: 2019-12-07 21:27
-"""
+
 import os
 import sys
 from scrapy.crawler import CrawlerProcess

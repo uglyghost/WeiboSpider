@@ -24,14 +24,32 @@ class MongoDBPipeline(object):
         elif spider.name == 'user_spider':
             self.insert_item(self.Users, item)
         elif spider.name == 'tweet_spider':
-            self.insert_item(self.Tweets, item)
+            self.insert_item_tweet(self.Tweets, item)
         elif spider.name == 'repost_spider':
             self.insert_item(self.Reposts, item)
         return item
 
     @staticmethod
-    def insert_item(collection, item):
+    def insert_item_tweet(collection, item):
         try:
             collection.insert(dict(item))
         except DuplicateKeyError:
             pass
+
+    @staticmethod
+    def insert_item(collection, item):
+        try:
+
+            query = {"_id": item["_id"]}
+
+            # 重复检查，看是否存在数据
+            count = collection.count_documents(query)
+            # print(tmp_dict)
+
+            if count == 0:
+                # 不存在，添加
+                collection.insert(dict(item))
+            # collection.insert(dict(item))
+        except DuplicateKeyError:
+            pass
+

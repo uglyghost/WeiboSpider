@@ -1,27 +1,53 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-File Description: 
-Author: nghuyong
-Mail: nghuyong@163.com
-Created Time: 2020/4/14
-"""
+
 import re
 from scrapy import Selector, Spider
 from scrapy.http import Request
 import time
 from items import UserItem
+from pymongo import MongoClient
+from bson import ObjectId
+import pandas as pd
 
+user = 'weibo'
+pwd = '123456'
+host = '127.0.0.1'
+port = '27017'
+db_name = 'weibo'
+
+uri = "mongodb://%s:%s@%s" % (user, pwd, host + ":" + port + "/" + db_name)
+
+client = MongoClient(uri)
+mongodb = client.weibo
 
 class UserSpider(Spider):
     name = "user_spider"
     base_url = "https://weibo.cn"
 
     def start_requests(self):
-        user_ids = ['1087770692', '1699432410', '1266321801','1749127163']
-        urls = [f'{self.base_url}/{user_id}/info' for user_id in user_ids]
-        for url in urls:
-            yield Request(url, callback=self.parse)
+        query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+        # 重复检查，看是否存在数据
+        count = mongodb['tmp'].find_one(query)
+        user_id = count['user_id']
+        tmp = mongodb['Relationships'].find().distinct("fan_id")
+
+        countA = []
+        lock = 0
+        for document in tmp:
+            if document == user_id:
+                lock = 1
+
+            if lock == 1:
+                countA.append(document)
+
+        for value in countA:
+            user_ids = [value]
+            mongodb['tmp'].update_one(query, {"$set": {"user_id": str(value)}})
+            urls = [f'{self.base_url}/{user_id}/info' for user_id in user_ids]
+            for url in urls:
+                yield Request(url, callback=self.parse)
+
 
     def parse(self, response):
         user_item = UserItem()

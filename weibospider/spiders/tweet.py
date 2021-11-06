@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-File Description: 
-Author: nghuyong
-Mail: nghuyong@163.com
-Created Time: 2020/4/14
-"""
+
 import datetime
 import re
 from lxml import etree
@@ -15,7 +10,20 @@ import time
 from items import TweetItem
 from urllib.parse import unquote
 from spiders.utils import time_fix, extract_weibo_content
+from pymongo import MongoClient
+from bson import ObjectId
+import pandas as pd
 
+user = 'weibo'
+pwd = '123456'
+host = '127.0.0.1'
+port = '27017'
+db_name = 'weibo'
+
+uri = "mongodb://%s:%s@%s" % (user, pwd, host + ":" + port + "/" + db_name)
+
+client = MongoClient(uri)
+mongodb = client.weibo
 
 class TweetSpider(Spider):
     name = "tweet_spider"
@@ -26,9 +34,28 @@ class TweetSpider(Spider):
         def init_url_by_user_id():
             # crawl tweets post by users
             # === change the following config ===
-            user_ids = ['1087770692', '1699432410', '1266321801']
-            # === change the above config ===
-            urls = [f'{self.base_url}/{user_id}/profile?page=1' for user_id in user_ids]
+            # user_ids = ['1087770692', '1699432410', '1266321801']
+            query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+            # 重复检查，看是否存在数据
+            count = mongodb['tmp'].find_one(query)
+            user_id = count['tweet_id']
+            tmp = mongodb['Relationships'].find().distinct("fan_id")
+
+            countA = []
+            lock = 0
+            for document in tmp:
+                if document == user_id:
+                    lock = 1
+
+                if lock == 1:
+                    countA.append(document)
+
+            for value in countA:
+                user_ids = [value]
+                mongodb['tmp'].update_one(query, {"$set": {"tweet_id": str(value)}})
+                # === change the above config ===
+                urls = [f'{self.base_url}/{user_id}/profile?page=1' for user_id in user_ids]
+
             return urls
 
         def init_url_by_user_id_and_date():
@@ -71,9 +98,9 @@ class TweetSpider(Spider):
             return urls
 
         # select urls generation by the following code
-        # urls = init_url_by_user_id()
+        urls = init_url_by_user_id()
         # urls = init_url_by_keywords_and_date()
-        urls = init_url_by_user_id_and_date()
+        # urls = init_url_by_user_id_and_date()
         for url in urls:
             yield Request(url, callback=self.parse)
 

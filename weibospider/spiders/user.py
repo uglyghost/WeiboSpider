@@ -8,7 +8,6 @@ import time
 from items import UserItem
 from pymongo import MongoClient
 from bson import ObjectId
-import pandas as pd
 
 user = 'weibo'
 pwd = '123456'
@@ -22,11 +21,16 @@ client = MongoClient(uri)
 mongodb = client.weibo
 
 class UserSpider(Spider):
+
+    def __init__(self, id_list=None):
+        self.id_list = id_list  # source file name
+
     name = "user_spider"
     base_url = "https://weibo.cn"
 
     def start_requests(self):
         query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+        '''
         # 重复检查，看是否存在数据
         count = mongodb['tmp'].find_one(query)
         user_id = count['user_id']
@@ -40,14 +44,14 @@ class UserSpider(Spider):
 
             if lock == 1:
                 countA.append(document)
+        '''
 
-        for value in countA:
+        for value in self.id_list:
             user_ids = [value]
             mongodb['tmp'].update_one(query, {"$set": {"user_id": str(value)}})
             urls = [f'{self.base_url}/{user_id}/info' for user_id in user_ids]
             for url in urls:
                 yield Request(url, callback=self.parse)
-
 
     def parse(self, response):
         user_item = UserItem()

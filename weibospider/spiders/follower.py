@@ -8,9 +8,8 @@ from scrapy.selector import Selector
 from scrapy.http import Request
 from items import RelationshipItem
 import time
-from pymongo import MongoClient
 from bson import ObjectId
-import pandas as pd
+from pymongo import MongoClient
 
 user = 'weibo'
 pwd = '123456'
@@ -24,26 +23,19 @@ client = MongoClient(uri)
 mongodb = client.weibo
 
 class FollowerSpider(Spider):
+
+    def __init__(self, id_list=None):
+        self.id_list = id_list
+
     name = "follower_spider"
     base_url = "https://weibo.cn"
 
     def start_requests(self):
+
         query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
-        # 重复检查，看是否存在数据
-        count = mongodb['tmp'].find_one(query)
-        user_id = count['follow_id']
-        tmp = mongodb['Relationships'].find().distinct("fan_id")
 
-        countA = []
-        lock = 0
-        for document in tmp:
-            if document == user_id:
-                lock = 1
-
-            if lock == 1:
-                countA.append(document)
-
-        for value in countA:
+        for value in self.id_list:
+            # print(value)
             user_ids = [value]
             mongodb['tmp'].update_one(query, {"$set": {"follow_id": value}})
             # user_ids = ['1087770692', '1699432410', '1266321801']

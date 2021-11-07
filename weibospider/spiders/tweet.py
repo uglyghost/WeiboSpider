@@ -26,6 +26,10 @@ client = MongoClient(uri)
 mongodb = client.weibo
 
 class TweetSpider(Spider):
+
+    def __init__(self, id_list=None):
+        self.id_list = id_list
+
     name = "tweet_spider"
     base_url = "https://weibo.cn"
 
@@ -36,6 +40,7 @@ class TweetSpider(Spider):
             # === change the following config ===
             # user_ids = ['1087770692', '1699432410', '1266321801']
             query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+            '''
             # 重复检查，看是否存在数据
             count = mongodb['tmp'].find_one(query)
             user_id = count['tweet_id']
@@ -49,10 +54,10 @@ class TweetSpider(Spider):
 
                 if lock == 1:
                     countA.append(document)
-
-            for value in countA:
+            '''
+            for value in self.id_list:
                 user_ids = [value]
-                mongodb['tmp'].update_one(query, {"$set": {"tweet_id": str(value)}})
+                # mongodb['tmp'].update_one(query, {"$set": {"tweet_id": str(value)}})
                 # === change the above config ===
                 urls = [f'{self.base_url}/{user_id}/profile?page=1' for user_id in user_ids]
 
@@ -61,15 +66,16 @@ class TweetSpider(Spider):
         def init_url_by_user_id_and_date():
             # crawl specific users' tweets in a specific date
             # === change the following config ===
-            user_ids = ['1087770692', '1699432410', '1266321801']
-            start_date = datetime.datetime.strptime("2020-01-01", '%Y-%m-%d')
-            end_date = datetime.datetime.strptime("2020-12-31", '%Y-%m-%d')
+            query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+            #user_ids = ['1087770692', '1699432410', '1266321801']
+            start_date = datetime.datetime.strptime("2021-01-01", '%Y-%m-%d')
+            end_date = datetime.datetime.strptime("2021-10-01", '%Y-%m-%d')
             # === change the above config ===
             time_spread = datetime.timedelta(days=20)
             url_format = "https://weibo.cn/{}/profile?hasori=0&haspic=0&starttime={}&endtime={}&advancedfilter=1&page=1"
             urls = []
             while start_date < end_date:
-                for user_id in user_ids:
+                for user_id in self.id_list:
                     start_date_string = start_date.strftime("%Y%m%d")
                     tmp_end_date = start_date + time_spread
                     if tmp_end_date >= end_date:
@@ -98,9 +104,9 @@ class TweetSpider(Spider):
             return urls
 
         # select urls generation by the following code
-        urls = init_url_by_user_id()
-        # urls = init_url_by_keywords_and_date()
-        # urls = init_url_by_user_id_and_date()
+        #urls = init_url_by_user_id()
+        #urls = init_url_by_keywords_and_date()
+        urls = init_url_by_user_id_and_date()
         for url in urls:
             yield Request(url, callback=self.parse)
 

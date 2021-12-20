@@ -46,7 +46,7 @@ if __name__ == '__main__':
         # list2 = mongodb['Relationships'].find().distinct("follow_id")
         list2 = mongodb['uid_list'].find().distinct("uid")
     elif mode == "follow":
-        list2 = mongodb['uid_list'].find().distinct("uid")
+        list2 = mongodb['Users'].find().distinct("_id")
         # list2 = mongodb['User'].find()
     elif mode == "tweet":
         list2 = mongodb['tweet'].find().distinct("user_id")

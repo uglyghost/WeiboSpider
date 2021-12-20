@@ -15,7 +15,7 @@ user = 'weibo'
 pwd = '123456'
 host = '127.0.0.1'
 port = '27017'
-db_name = 'weibo'
+db_name = 'weibo_senior'
 
 uri = "mongodb://%s:%s@%s" % (user, pwd, host + ":" + port + "/" + db_name)
 
@@ -32,12 +32,12 @@ class FollowerSpider(Spider):
 
     def start_requests(self):
 
-        query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
+        # query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
 
         for value in self.id_list:
             # print(value)
             user_ids = [value]
-            mongodb['tmp'].update_one(query, {"$set": {"follow_id": value}})
+            # mongodb['tmp'].update_one(query, {"$set": {"follow_id": value}})
             # user_ids = ['1087770692', '1699432410', '1266321801']
             urls = [f"{self.base_url}/{user_id}/follow?page=1" for user_id in user_ids]
             for url in urls:

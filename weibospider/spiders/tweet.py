@@ -18,7 +18,7 @@ user = 'weibo'
 pwd = '123456'
 host = '127.0.0.1'
 port = '27017'
-db_name = 'weibo'
+db_name = 'weibo_senior'
 
 uri = "mongodb://%s:%s@%s" % (user, pwd, host + ":" + port + "/" + db_name)
 

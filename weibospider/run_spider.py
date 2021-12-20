@@ -38,23 +38,26 @@ if __name__ == '__main__':
         'user': UserSpider,
         'repost': RepostSpider,
     }
-    query = {"_id": ObjectId("618557946f63bdf1e4ac1523")}
-    # 重复检查，看是否存在数据
-    count = mongodb['tmp'].find_one(query)
-    user_id = count[str(mode) + '_id']
     list1 = mongodb['Relationships'].find().distinct("fan_id")
     if mode == "user":
-        list2 = mongodb['Users'].find().distinct("_id")
+        list2 = mongodb['uid_list'].find().distinct("uid")
+        # list2 = mongodb['Users'].find().distinct("_id")
     elif mode == "fan":
-        list2 = mongodb['Relationships'].find().distinct("follow_id")
+        # list2 = mongodb['Relationships'].find().distinct("follow_id")
+        list2 = mongodb['uid_list'].find().distinct("uid")
     elif mode == "follow":
-        list2 = mongodb['Relationships'].find().distinct("fan_id")
+        list2 = mongodb['uid_list'].find().distinct("uid")
+        # list2 = mongodb['User'].find()
     elif mode == "tweet":
         list2 = mongodb['tweet'].find().distinct("user_id")
 
-    diff_list = list(set(list1) - set(list2))
+    # diff_list = list(set(list1) - set(list2))
+    diff_list = list2
 
-    print(len(diff_list))
+    # print(len(diff_list))
+    # print(diff_list)
+
+    # diff_list = ['1193491727', '1900093290', '5726715057', '2683882661', '1880143303']
 
     # 调用进程池的map_async()方法，接收一个函数(爬虫函数)和一个列表(用户ID)
     # 官方网站标准库文档里边map_async用法如下：p.may_async(func,[1,2,3])
